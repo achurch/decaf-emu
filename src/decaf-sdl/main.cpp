@@ -1,7 +1,9 @@
 #include "clilog.h"
+#include "common/decaf_assert.h"
 #include "config.h"
 #include "decafsdl.h"
 #include "libdecaf/decaf.h"
+#include "libdecaf/src/modules/coreinit/coreinit_enum.h"
 #include <pugixml.hpp>
 #include <excmd.h>
 #include <iostream>
@@ -60,6 +62,12 @@ getCommandLineParser()
       .add_option("sys-path",
                   description { "Where to locate any external system files." },
                   value<std::string> {})
+      .add_option("region",
+                  description { "Set the system region." },
+                  default_value<std::string> { "US" },
+                  allowed<std::string> { {
+                        "EUR", "JAP", "US"
+                  } })
       .add_option("time-scale",
                   description { "Time scale factor for emulated clock." },
                   default_value<double> { 1.0 });
@@ -148,6 +156,19 @@ start(excmd::parser &parser,
 
    if (options.has("sys-path")) {
       decaf::config::system::system_path = options.get<std::string>("sys-path");
+   }
+
+   if (options.has("region")) {
+      const std::string region = options.get<std::string>("region");
+      if (region.compare("JAP") == 0) {
+         decaf::config::system::region = coreinit::SCIRegion::JAP;
+      } else if (region.compare("US") == 0) {
+         decaf::config::system::region = coreinit::SCIRegion::US;
+      } else if (region.compare("EUR") == 0) {
+         decaf::config::system::region = coreinit::SCIRegion::EUR;
+      } else {
+         decaf_abort(fmt::format("Invalid region {}", region));
+      }
    }
 
    if (options.has("time-scale")) {
