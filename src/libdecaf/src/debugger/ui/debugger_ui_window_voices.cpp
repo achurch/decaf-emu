@@ -1,4 +1,5 @@
 #include "debugger_ui_window_voices.h"
+#include "decaf_config.h"
 #include "cafe/libraries/sndcore2/sndcore2_enum.h"
 #include "cafe/libraries/sndcore2/sndcore2_voice.h"
 
@@ -16,6 +17,7 @@ static const ImVec4 CurrentBgColor = HEXTOIMV4(0x00E676, 1.0f);
 VoicesWindow::VoicesWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_voices_view;
 }
 
 void

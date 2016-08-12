@@ -10,6 +10,15 @@ namespace debugger
 {
 
 bool enabled = true;
+bool show_disasm_view = true;
+bool show_mem_view = true;
+bool show_perf_view = true;
+bool show_reg_view = true;
+bool show_seg_view = true;
+bool show_stack_view = true;
+bool show_stats_view = true;
+bool show_thread_view = true;
+bool show_voices_view = true;
 bool break_on_entry = false;
 bool gdb_stub = false;
 unsigned gdb_stub_port = 2159;

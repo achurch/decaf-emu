@@ -1,5 +1,6 @@
 #include "debugger_ui_window_registers.h"
 #include "debugger/debugger_threadutils.h"
+#include "decaf_config.h"
 #include "cafe/libraries/coreinit/coreinit_scheduler.h"
 
 #include <fmt/format.h>
@@ -19,6 +20,7 @@ RegistersWindow::RegistersWindow(const std::string &name) :
    mLastResumeCount(0),
    mLastActiveThread(0)
 {
+   mVisible = decaf::config::debugger::show_reg_view;
    std::memset(&mCurrentRegisters, 0, sizeof(cpu::CoreRegs));
    std::memset(&mPreviousRegisters, 0, sizeof(cpu::CoreRegs));
 }

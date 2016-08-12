@@ -15,6 +15,33 @@ namespace debugger
 //! Enable usage of debugger
 extern bool enabled;
 
+//! Show the disassembly view on startup
+extern bool show_disasm_view;
+
+//! Show the memory view on startup
+extern bool show_mem_view;
+
+//! Show the performance view on startup
+extern bool show_perf_view;
+
+//! Show the register view on startup
+extern bool show_reg_view;
+
+//! Show the segment view on startup
+extern bool show_seg_view;
+
+//! Show the stack view on startup
+extern bool show_stack_view;
+
+//! Show the stats view on startup
+extern bool show_stats_view;
+
+//! Show the thread view on startup
+extern bool show_thread_view;
+
+//! Show the voices view on startup
+extern bool show_voices_view;
+
 //! Whether to break on entry point of game when debugger is enabled
 extern bool break_on_entry;
 

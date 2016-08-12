@@ -1,4 +1,5 @@
 #include "debugger_ui_window_stats.h"
+#include "decaf_config.h"
 
 #include <algorithm>
 #include <cinttypes>
@@ -14,6 +15,7 @@ namespace ui
 StatsWindow::StatsWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_stats_view;
 }
 
 void

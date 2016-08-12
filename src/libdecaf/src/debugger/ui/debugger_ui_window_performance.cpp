@@ -2,6 +2,7 @@
 #include "debugger_ui_window_performance_gl.h"
 #include "debugger_ui_window_performance_vulkan.h"
 #include "debugger_ui_plot.h"
+#include "decaf_config.h"
 #include "decaf_graphics.h"
 
 #include <algorithm>
@@ -25,6 +26,7 @@ ValueTextColor = HEXTOIMV4(0xD3D3D3, 1.0f);
 PerformanceWindow::PerformanceWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_perf_view;
 }
 
 PerformanceWindow *

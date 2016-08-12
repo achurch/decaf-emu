@@ -1,5 +1,6 @@
 #include "debugger_ui_window_stack.h"
 #include "debugger/debugger_threadutils.h"
+#include "decaf_config.h"
 
 #include "cafe/kernel/cafe_kernel_loader.h"
 #include "cafe/libraries/coreinit/coreinit_scheduler.h"
@@ -24,6 +25,7 @@ static const ImVec4 SelBgColor = HEXTOIMV4(0x263238, 1.0f);
 StackWindow::StackWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_stack_view;
 }
 
 void

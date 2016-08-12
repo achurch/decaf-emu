@@ -1,4 +1,5 @@
 #include "debugger_ui_window_segments.h"
+#include "decaf_config.h"
 
 #include "cafe/loader/cafe_loader_entry.h"
 #include "cafe/loader/cafe_loader_loaded_rpl.h"
@@ -15,6 +16,7 @@ namespace ui
 SegmentsWindow::SegmentsWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_seg_view;
 }
 
 static void

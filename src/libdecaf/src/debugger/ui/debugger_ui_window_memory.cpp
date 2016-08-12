@@ -1,5 +1,6 @@
 #include "cafe/kernel/cafe_kernel_mmu.h"
 #include "debugger_ui_window_memory.h"
+#include "decaf_config.h"
 
 #include <algorithm>
 #include <imgui.h>

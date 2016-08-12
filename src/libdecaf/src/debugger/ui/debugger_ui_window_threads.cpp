@@ -1,5 +1,6 @@
 #include "debugger_ui_window_threads.h"
 #include "debugger/debugger_threadutils.h"
+#include "decaf_config.h"
 #include "cafe/libraries/coreinit/coreinit_enum_string.h"
 #include "cafe/libraries/coreinit/coreinit_scheduler.h"
 #include "cafe/libraries/coreinit/coreinit_thread.h"
@@ -20,6 +21,7 @@ static const ImVec4 CurrentBgColor = HEXTOIMV4(0x00E676, 1.0f);
 ThreadsWindow::ThreadsWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_thread_view;
 }
 
 void

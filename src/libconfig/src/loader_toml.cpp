@@ -12,6 +12,15 @@ bool
 loadFromTOML(std::shared_ptr<cpptoml::table> config)
 {
    readValue(config, "debugger.enabled", decaf::config::debugger::enabled);
+   readValue(config, "debugger.show_disasm_view", decaf::config::debugger::show_disasm_view);
+   readValue(config, "debugger.show_mem_view", decaf::config::debugger::show_mem_view);
+   readValue(config, "debugger.show_perf_view", decaf::config::debugger::show_perf_view);
+   readValue(config, "debugger.show_reg_view", decaf::config::debugger::show_reg_view);
+   readValue(config, "debugger.show_seg_view", decaf::config::debugger::show_seg_view);
+   readValue(config, "debugger.show_stack_view", decaf::config::debugger::show_stack_view);
+   readValue(config, "debugger.show_stats_view", decaf::config::debugger::show_stats_view);
+   readValue(config, "debugger.show_thread_view", decaf::config::debugger::show_thread_view);
+   readValue(config, "debugger.show_voices_view", decaf::config::debugger::show_voices_view);
    readValue(config, "debugger.break_on_entry", decaf::config::debugger::break_on_entry);
    readValue(config, "debugger.gdb_stub", decaf::config::debugger::gdb_stub);
    readValue(config, "debugger.gdb_stub_port", decaf::config::debugger::gdb_stub_port);

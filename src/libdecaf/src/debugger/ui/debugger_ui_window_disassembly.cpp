@@ -1,3 +1,4 @@
+#include "decaf_config.h"
 #include "decaf_input.h"
 #include "debugger/debugger_analysis.h"
 #include "debugger/debugger_branchcalc.h"
@@ -51,6 +52,7 @@ struct VisInstrInfo
 DisassemblyWindow::DisassemblyWindow(const std::string &name) :
    Window(name)
 {
+   mVisible = decaf::config::debugger::show_disasm_view;
 }
 
 void
