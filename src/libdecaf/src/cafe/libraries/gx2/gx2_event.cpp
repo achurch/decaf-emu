@@ -174,7 +174,9 @@ initEvents()
    OSInitThreadQueue(virt_addrof(sEventData->flipThreadQueue));
    OSInitThreadQueue(virt_addrof(sEventData->vsyncThreadQueue));
 
-   auto ticks = static_cast<OSTime>(OSGetSystemInfo()->busSpeed / 4) / 60;
+   // NTSC 720p video is 59.94 (60 / 1.001) frames per second
+   auto ticks = static_cast<OSTime>(OSGetSystemInfo()->busSpeed / 4) * 1001 / 60000;
+
    OSCreateAlarm(virt_addrof(sEventData->vsyncAlarm));
    OSSetPeriodicAlarm(virt_addrof(sEventData->vsyncAlarm), OSGetTime(), ticks,
                       VsyncAlarmHandler);
