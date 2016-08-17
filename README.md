@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/fbhhy0nf6nym9pcf/branch/master?svg=true)](https://ci.appveyor.com/project/exjam/decaf-emu) [![Build Status](https://travis-ci.org/decaf-emu/decaf-emu.svg?branch=master)](https://travis-ci.org/decaf-emu/decaf-emu)
+**Note** to Git users: This branch (achurch/local) is intended to provide a repository of experimental patches which can be easily applied on top of the decaf-emu master branch.  Accordingly, the branch is rebased frequently, so be aware that references to specific commits on this branch may break without warning.  The actual content of the commits will not be modified except as needed during rebasing (commits which are merged to master will be removed entirely).
 
 # decaf-emu
 Researching Wii U emulation. Licensed under the terms of the GNU General Public License, version 3 or later (GPLv3+).
