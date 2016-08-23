@@ -1,6 +1,7 @@
 #include "clilog.h"
 #include "config.h"
 #include "decafsdl.h"
+#include "libcpu/mem.h"
 #include <common-sdl/decafsdl_opengl.h>
 #include <common-sdl/decafsdl_vulkan.h>
 
@@ -11,6 +12,30 @@ static std::string
 sActiveGfx = "NOGFX";
 
 void setWindowIcon(SDL_Window *window);
+
+static const std::vector<config::patch::MemoryMod> *
+lookupMemoryMods(const decaf::GameInfo &info)
+{
+   char key[22];
+   decaf_check(snprintf(key, sizeof(key), "%016llX-%04X", (long long)info.titleId, 0x10 /*FIXME: info.app.title_version*/) < static_cast<int>(sizeof(key)));
+
+   auto i = config::patch::memory_mods.find(key);
+   if (i != config::patch::memory_mods.end()) {
+      return &i->second;
+   } else {
+      return nullptr;
+   }
+}
+
+static void
+applyMemoryMods(const std::vector<config::patch::MemoryMod> *mods)
+{
+   if (mods) {
+      for (auto &i : *mods) {
+         mem::write(i.address, i.value);
+      }
+   }
+}
 
 DecafSDL::~DecafSDL()
 {
@@ -319,6 +344,10 @@ DecafSDL::onGameLoaded(const decaf::GameInfo &info)
 
    auto titleStr = std::string { title.data(), title.size() };
    SDL_SetWindowTitle(mGraphicsDriver->getWindow(), titleStr.c_str());
+
+   // Apply memory patches, if any
+   applyMemoryMods(lookupMemoryMods(info));
+   applyMemoryMods(&config::patch::memory_mods_cmdline);
 
    // We have to be careful not to start rendering until the game is
    // fully loaded, or we will block window messaging.

@@ -1,5 +1,6 @@
 #pragma once
 #include <libconfig/config_toml.h>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -109,6 +110,23 @@ extern std::vector<InputDevice> devices;
 extern std::string vpad0;
 
 } // namespace input
+
+namespace patch
+{
+
+struct MemoryMod
+{
+   uint32_t address;
+   uint32_t value;
+};
+
+//! Mapping from "<titleID>-<version>" (16+4 hex digits) to list of changes to apply to memory after loading application
+extern std::map<std::string, std::vector<MemoryMod>> memory_mods;
+
+//! List of memory modifications specified on the command line (not saved)
+extern std::vector<MemoryMod> memory_mods_cmdline;
+
+} // namespace patch
 
 namespace sound
 {

@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <SDL_keycode.h>
+#include <common/decaf_assert.h>
 
 namespace config
 {
@@ -24,6 +25,14 @@ std::vector<InputDevice> devices;
 std::string vpad0 = "default_keyboard";
 
 } // namespace input
+
+namespace patch
+{
+
+std::map<std::string, std::vector<MemoryMod>> memory_mods;
+std::vector<MemoryMod> memory_mods_cmdline;
+
+} // namespace patch
 
 namespace sound
 {
@@ -196,6 +205,25 @@ loadFrontendToml(std::shared_ptr<cpptoml::table> config)
    config::display::force_sync = config->get_qualified_as<bool>("display.force_sync").value_or(config::display::force_sync);
    config::display::stretch = config->get_qualified_as<bool>("display.stretch").value_or(config::display::stretch);
    config::display::backend = config->get_qualified_as<std::string>("display.backend").value_or(config::display::backend);
+
+   if (auto patches = config->get_table("patch")) {
+      for (const auto &i : *patches) {
+         const std::string &key = i.first;
+         auto &mods = config::patch::memory_mods[key];
+         for (auto j : *(i.second->as_array())) {
+            auto mod = j->as_array()->get_array_of<int64_t>();
+            decaf_check(mod);
+            int64_t address64 = (*mod)[0];
+            int64_t value64 = (*mod)[1];
+            decaf_check(address64 >= 0 && address64 <= 0xFFFFFFFFu);
+            decaf_check(value64 >= 0 && value64 <= 0xFFFFFFFFu);
+            auto address = static_cast<uint32_t>(address64);
+            auto value = static_cast<uint32_t>(value64);
+            mods.emplace_back(config::patch::MemoryMod { address, value });
+         }
+         config::patch::memory_mods[key] = mods;
+      }
+   }
 
    if (auto bgColor = config->get_qualified_array_of<int64_t>("ui.background_colour")) {
       config::display::background_colour.r = static_cast<int>(bgColor->at(0));
@@ -374,6 +402,24 @@ saveFrontendToml(std::shared_ptr<cpptoml::table> config)
 
    input->insert("devices", devices);
    config->insert("input", input);
+
+   // patch
+   auto patch = config->get_table("patch");
+   if (!patch) {
+      patch = cpptoml::make_table();
+   }
+
+   for (const auto &i : config::patch::memory_mods) {
+      auto mods = cpptoml::make_array();
+      for (const auto &j : i.second) {
+         auto mod = cpptoml::make_array();
+         mod->push_back(j.address);
+         mod->push_back(j.value);
+      }
+      patch->insert(i.first, mods);
+   }
+
+   config->insert("patch", patch);
 
    // sound
    auto sound = config->get_table("sound");

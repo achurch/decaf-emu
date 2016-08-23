@@ -84,11 +84,17 @@ getCommandLineParser()
                   description { "Folder to place dumped frames in" },
                   make_default_value(config::test::dump_frames_dir));
 
+   auto patch_options = parser.add_option_group("Patch Options")
+      .add_option("patch-memory",
+                  description { "List of memory modifications to make after loading the game.\n    Format: ADDRESS=VALUE,ADDRESS=VALUE... (in decimal or 0xHEX)" },
+                  value<std::string> {});
+
    auto config_options = config::getExcmdGroups(parser);
 
    auto cmdPlay = parser.add_command("play")
       .add_option_group(frontend_options)
       .add_option_group(input_options)
+      .add_option_group(patch_options)
       .add_argument("target", value<std::string> {});
 
    auto cmdTest = parser.add_command("test")
@@ -208,6 +214,28 @@ start(excmd::parser &parser,
 
    if (options.has("backend")) {
       config::display::backend = options.get<std::string>("backend");
+   }
+
+   if (options.has("patch-memory")) {
+      auto mods = options.get<std::string>("patch-memory");
+
+      while (!mods.empty()) {
+         std::string mod;
+         auto commaPos = mods.find(',');
+         if (commaPos != std::string::npos) {
+            mod = mods.substr(0, commaPos);
+            mods = mods.substr(commaPos + 1);
+         } else {
+            mod = mods;
+            mods.clear();
+         }
+
+         unsigned address, value;
+         if (sscanf(mod.c_str(), "%i=%i", &address, &value) != 2) {
+            decaf_abort(fmt::format("Invalid memory patch {}", mod));
+         }
+         config::patch::memory_mods_cmdline.emplace_back(config::patch::MemoryMod { address, value });
+      }
    }
 
    if (options.has("timeout-ms")) {
