@@ -72,7 +72,6 @@ struct FetchShader : public Shader
    gl::GLuint object = 0;
    std::vector<Attrib> attribs;
    std::array<AttribBufferCache, latte::MaxAttribBuffers> mAttribBufferCache;
-   std::string disassembly;
 };
 
 struct VertexShader : public Shader
@@ -87,7 +86,6 @@ struct VertexShader : public Shader
    std::array<bool, 4> usedFeedbackBuffers;
    uint32_t lastUniformUpdate = 0;
    std::string code;
-   std::string disassembly;
 };
 
 struct PixelShader : public Shader
@@ -100,7 +98,6 @@ struct PixelShader : public Shader
    std::array<bool, 16> usedUniformBlocks;
    uint32_t lastUniformUpdate = 0;
    std::string code;
-   std::string disassembly;
 };
 
 using ShaderPipelineKey = std::tuple<uint64_t, uint64_t, uint64_t>;

@@ -1,5 +1,6 @@
 #include "glsl2_translate.h"
 #include "glsl2_cf.h"
+#include "gpu_config.h"
 #include "latte/latte_constants.h"
 #include "latte/latte_decoders.h"
 #include "latte/latte_disassembler.h"
@@ -50,10 +51,12 @@ translateTEX(State &state, const ControlFlowInst &cf)
    auto clauseTex = reinterpret_cast<const TextureFetchInst *>(state.binary.data() + 8 * addr);
    auto clauseVtx = reinterpret_cast<const VertexFetchInst *>(state.binary.data() + 8 * addr);
 
-   insertLineStart(state);
-   fmt::format_to(state.out, "// {:02} ", state.cfPC);
-   latte::disassembler::disassembleCF(state.out, cf);
-   insertLineEnd(state);
+   if (gpu::config::debug) {
+      insertLineStart(state);
+      fmt::format_to(state.out, "// {:02} ", state.cfPC);
+      latte::disassembler::disassembleCF(state.out, cf);
+      insertLineEnd(state);
+   }
 
    condStart(state, cf.word1.COND());
 
@@ -64,10 +67,12 @@ translateTEX(State &state, const ControlFlowInst &cf)
       auto name = getInstructionName(id);
 
       // Print disassembly
-      insertLineStart(state);
-      fmt::format_to(state.out, "// {:02} ", state.groupPC);
-      latte::disassembler::disassembleTexInstruction(state.out, cf, tex);
-      insertLineEnd(state);
+      if (gpu::config::debug) {
+         insertLineStart(state);
+         fmt::format_to(state.out, "// {:02} ", state.groupPC);
+         latte::disassembler::disassembleTexInstruction(state.out, cf, tex);
+         insertLineEnd(state);
+      }
 
       // Translate instruction
       if (id == SQ_TEX_INST_VTX_FETCH || id == SQ_TEX_INST_VTX_SEMANTIC) {
@@ -121,10 +126,12 @@ translateNormal(State &state, const ControlFlowInst &cf)
    } else {
       auto itr = sInstructionMapCF.find(id);
 
-      insertLineStart(state);
-      fmt::format_to(state.out, "// {:02} ", state.cfPC);
-      latte::disassembler::disassembleCF(state.out, cf);
-      insertLineEnd(state);
+      if (gpu::config::debug) {
+         insertLineStart(state);
+         fmt::format_to(state.out, "// {:02} ", state.cfPC);
+         latte::disassembler::disassembleCF(state.out, cf);
+         insertLineEnd(state);
+      }
 
       if (itr != sInstructionMapCF.end()) {
          itr->second(state, cf);
@@ -208,15 +215,17 @@ translateALUReduction(State &state, const ControlFlowInst &cf, AluGroup &group)
    }
 
    // Print disassembly
-   insertLineStart(state);
-   fmt::format_to(state.out, "// {:02} Reduction", state.groupPC);
-   insertLineEnd(state);
-
-   for (auto i = 0u; i < reduction.size(); ++i) {
+   if (gpu::config::debug) {
       insertLineStart(state);
-      fmt::format_to(state.out, "// ");
-      latte::disassembler::disassembleAluInstruction(state.out, cf, reduction[i], state.groupPC, static_cast<SQ_CHAN>(i), state.literals);
+      fmt::format_to(state.out, "// {:02} Reduction", state.groupPC);
       insertLineEnd(state);
+
+      for (auto i = 0u; i < reduction.size(); ++i) {
+         insertLineStart(state);
+         fmt::format_to(state.out, "// ");
+         latte::disassembler::disassembleAluInstruction(state.out, cf, reduction[i], state.groupPC, static_cast<SQ_CHAN>(i), state.literals);
+         insertLineEnd(state);
+      }
    }
 
    // Translate the instruction!
@@ -252,10 +261,12 @@ translateControlFlowALU(State &state, const ControlFlowInst &cf)
    auto clause = reinterpret_cast<const AluInst *>(state.binary.data() + 8 * addr);
    auto didPushBefore = false;
 
-   insertLineStart(state);
-   fmt::format_to(state.out, "// {:02} ", state.cfPC);
-   latte::disassembler::disassembleCfALUInstruction(state.out, cf);
-   insertLineEnd(state);
+   if (gpu::config::debug) {
+      insertLineStart(state);
+      fmt::format_to(state.out, "// {:02} ", state.cfPC);
+      latte::disassembler::disassembleCfALUInstruction(state.out, cf);
+      insertLineEnd(state);
+   }
 
    switch (id) {
    case SQ_CF_INST_ALU_PUSH_BEFORE:
@@ -320,19 +331,23 @@ translateControlFlowALU(State &state, const ControlFlowInst &cf)
             updatePreviousScalar = true;
          }
 
-         insertLineStart(state);
-         fmt::format_to(state.out, "// {:02} ", state.groupPC);
-         latte::disassembler::disassembleAluInstruction(state.out, cf, inst, state.groupPC, state.unit, state.literals);
-         insertLineEnd(state);
+         if (gpu::config::debug) {
+            insertLineStart(state);
+            fmt::format_to(state.out, "// {:02} ", state.groupPC);
+            latte::disassembler::disassembleAluInstruction(state.out, cf, inst, state.groupPC, state.unit, state.literals);
+            insertLineEnd(state);
+         }
 
          if (func) {
             func(state, cf, inst);
          }
       }
 
-      insertLineStart(state);
-      fmt::format_to(state.out, "// {:02} --", state.groupPC);
-      insertLineEnd(state);
+      if (gpu::config::debug) {
+         insertLineStart(state);
+         fmt::format_to(state.out, "// {:02} --", state.groupPC);
+         insertLineEnd(state);
+      }
 
       for (auto &write : state.postGroupWrites) {
          insertLineStart(state);
@@ -506,10 +521,12 @@ translateExport(State &state, const ControlFlowInst &cf)
    auto id = cf.exp.word1.CF_INST();
    auto itr = sInstructionMapEXP.find(id);
 
-   insertLineStart(state);
-   fmt::format_to(state.out, "// {:02} ", state.cfPC);
-   latte::disassembler::disassembleExpInstruction(state.out, cf);
-   insertLineEnd(state);
+   if (gpu::config::debug) {
+      insertLineStart(state);
+      fmt::format_to(state.out, "// {:02} ", state.cfPC);
+      latte::disassembler::disassembleExpInstruction(state.out, cf);
+      insertLineEnd(state);
+   }
 
    if (itr != sInstructionMapEXP.end()) {
       itr->second(state, cf);

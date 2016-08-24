@@ -299,7 +299,6 @@ bool GLDriver::checkActiveShader()
          mResourceMap.addResource(fetchShader);
 
          dumpRawShader("fetch", fsPgmAddress, fsPgmSize, true);
-         fetchShader->disassembly = latte::disassemble(gsl::make_span(gpu::internal::translateAddress<uint8_t>(fsPgmAddress), fsPgmSize), true);
 
          if (!parseFetchShader(*fetchShader, gpu::internal::translateAddress(fsPgmAddress), fsPgmSize)) {
             gLog->error("Failed to parse fetch shader");
@@ -401,8 +400,8 @@ bool GLDriver::checkActiveShader()
          if (!isLinked) {
             auto log = getProgramLog(vertexShader->object);
             gLog->error("OpenGL failed to compile vertex shader:\n{}", log);
-            gLog->error("Fetch Disassembly:\n{}\n", fetchShader->disassembly);
-            gLog->error("Shader Disassembly:\n{}\n", vertexShader->disassembly);
+            gLog->error("Fetch Disassembly:\n{}\n", latte::disassemble(gsl::make_span(gpu::internal::translateAddress<uint8_t>(fsPgmAddress), fsPgmSize), true));
+            gLog->error("Shader Disassembly:\n{}\n", latte::disassemble(gsl::make_span(gpu::internal::translateAddress<uint8_t>(vsPgmAddress), vsPgmSize)));
             gLog->error("Shader Code:\n{}\n", vertexShader->code);
             return false;
          }
@@ -471,7 +470,7 @@ bool GLDriver::checkActiveShader()
             if (!isLinked) {
                auto log = getProgramLog(pixelShader->object);
                gLog->error("OpenGL failed to compile pixel shader:\n{}", log);
-               gLog->error("Shader Disassembly:\n{}\n", pixelShader->disassembly);
+               gLog->error("Shader Disassembly:\n{}\n", latte::disassemble(gsl::make_span(gpu::internal::translateAddress<uint8_t>(psPgmAddress), psPgmSize)));
                gLog->error("Shader Code:\n{}\n", pixelShader->code);
                return false;
             }
@@ -992,10 +991,8 @@ bool GLDriver::compileVertexShader(VertexShader &vertex, FetchShader &fetch, uin
       shader.uniformBlocksEnabled = true;
    }
 
-   vertex.disassembly = latte::disassemble(gsl::make_span(buffer, size));
-
    if (!glsl2::translate(shader, gsl::make_span(buffer, size))) {
-      gLog->error("Failed to decode vertex shader\n{}", vertex.disassembly);
+      gLog->error("Failed to decode vertex shader\n{}", latte::disassemble(gsl::make_span(buffer, size)));
       return false;
    }
 
@@ -1381,8 +1378,12 @@ bool GLDriver::compileVertexShader(VertexShader &vertex, FetchShader &fetch, uin
    }
 
    fmt::format_to(out, "}}\n");
-   fmt::format_to(out, "/* VERTEX SHADER DISASSEMBLY\n{}\n*/\n", vertex.disassembly);
-   fmt::format_to(out, "/* FETCH SHADER DISASSEMBLY\n{}\n*/\n", fetch.disassembly);
+
+   if (gpu::config::debug) {
+      fmt::format_to(out, "/* VERTEX SHADER DISASSEMBLY\n{}\n*/\n", latte::disassemble(gsl::make_span(buffer, size)));
+      fmt::format_to(out, "/* FETCH SHADER DISASSEMBLY\n{}\n*/\n", latte::disassemble(gsl::make_span(gpu::internal::translateAddress<uint8_t>(fetch.cpuMemStart), fetch.cpuMemEnd - fetch.cpuMemStart), true));
+   }
+
    vertex.code = to_string(out);
    return true;
 }
@@ -1415,10 +1416,9 @@ bool GLDriver::compilePixelShader(PixelShader &pixel, VertexShader &vertex, uint
       shader.uniformBlocksEnabled = true;
    }
 
-   pixel.disassembly = latte::disassemble(gsl::make_span(buffer, size));
-
    if (!glsl2::translate(shader, gsl::make_span(buffer, size))) {
-      gLog->error("Failed to decode pixel shader\n{}", pixel.disassembly);
+      gLog->error("Failed to decode pixel shader\n{}",
+                  latte::disassemble(gsl::make_span(buffer, size)));
       return false;
    }
 
@@ -1642,7 +1642,12 @@ bool GLDriver::compilePixelShader(PixelShader &pixel, VertexShader &vertex, uint
       }
    }
 
-   fmt::format_to(out, "}}\n/* PIXEL SHADER DISASSEMBLY\n{}\n*/\n", pixel.disassembly);
+   fmt::format_to(out, "}}\n");
+
+   if (gpu::config::debug) {
+      fmt::format_to(out, "/* PIXEL SHADER DISASSEMBLY\n{}\n*/\n", latte::disassemble(gsl::make_span(buffer, size)));
+   }
+
    pixel.code = to_string(out);
    return true;
 }
