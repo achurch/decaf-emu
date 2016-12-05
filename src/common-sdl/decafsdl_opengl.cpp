@@ -4,6 +4,7 @@
 
 #include <common/decaf_assert.h>
 #include <common/platform_dir.h>
+#include <common/platform_scheduler.h>
 #include <fmt/format.h>
 #include <glbinding/Binding.h>
 #include <glbinding/Meta.h>
@@ -414,6 +415,19 @@ DecafSDLOpenGL::initialise(int width,
             mDecafDriver->initialise();
             mDecafDriver->run();
          } };
+
+      // Try to avoid the same host cores the CPU is being emulated on
+      std::vector<int> coreMap;
+      platform::getCpuCoreMap(coreMap);
+      uint64_t cpuMask = 0;
+      for (auto i = 0u; i < coreMap.size(); ++i) {
+         if (coreMap[i] >= 3) {
+            cpuMask |= UINT64_C(1) << i;
+         }
+      }
+      if (cpuMask) {
+         platform::setThreadCpuMask(&mGraphicsThread, cpuMask);
+      }
    } else {
       // Set the swap interval to 0 so that we don't slow
       //  down the GPU system when presenting...  The game should

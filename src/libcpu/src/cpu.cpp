@@ -13,6 +13,7 @@
 #include <chrono>
 #include <common/decaf_assert.h>
 #include <common/platform_exception.h>
+#include <common/platform_scheduler.h>
 #include <common/platform_thread.h>
 #include <condition_variable>
 #include <memory>
@@ -200,6 +201,28 @@ start()
    installExceptionHandler();
    gRunning.store(true);
 
+   std::vector<int> coreMap;
+   platform::getCpuCoreMap(coreMap);
+
+   uint64_t coreCpus[3] = {0, 0, 0};
+   for (auto i = 0u; i < coreMap.size(); ++i) {
+      if (coreMap[i] == 0) {
+         coreCpus[0] |= UINT64_C(1) << i;
+      } else if (coreMap[i] == 1) {
+         coreCpus[1] |= UINT64_C(1) << i;
+      } else if (coreMap[i] == 2) {
+         coreCpus[2] |= UINT64_C(1) << i;
+      }
+   }
+
+   // Don't assign threads to host cores unless there are at least 3 cores
+   //  among which to distribute the threads.
+   if (!(coreCpus[0] != 0 && coreCpus[1] != 0 && coreCpus[2] != 0)) {
+      coreCpus[0] = 0;
+      coreCpus[1] = 0;
+      coreCpus[2] = 0;
+   }
+
    for (auto i = 0u; i < gCore.size(); ++i) {
       auto core = jit::initialiseCore(i);
       if (!core) {
@@ -213,6 +236,10 @@ start()
 
       static const std::string coreNames[] = { "Core #0", "Core #1", "Core #2" };
       platform::setThreadName(&core->thread, coreNames[i]);
+
+      if (coreCpus[i]) {
+         platform::setThreadCpuMask(&core->thread, coreCpus[i]);
+      }
    }
 
    gTimerThread = std::thread { timerEntryPoint };

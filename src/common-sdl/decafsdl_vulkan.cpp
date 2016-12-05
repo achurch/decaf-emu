@@ -5,6 +5,7 @@
 
 #include <common/log.h>
 #include <common/platform_debug.h>
+#include <common/platform_scheduler.h>
 #include <libdecaf/decaf_log.h>
 #include <libgpu/gpu_config.h>
 #include <SDL_vulkan.h>
@@ -768,6 +769,19 @@ DecafSDLVulkan::initialise(int width, int height, bool renderDebugger)
          [this]() {
             mDecafDriver->run();
          } };
+
+      // Try to avoid the same host cores the CPU is being emulated on
+      std::vector<int> coreMap;
+      platform::getCpuCoreMap(coreMap);
+      uint64_t cpuMask = 0;
+      for (auto i = 0u; i < coreMap.size(); ++i) {
+         if (coreMap[i] >= 3) {
+            cpuMask |= UINT64_C(1) << i;
+         }
+      }
+      if (cpuMask) {
+         platform::setThreadCpuMask(&mGraphicsThread, cpuMask);
+      }
    }
 
    return true;
