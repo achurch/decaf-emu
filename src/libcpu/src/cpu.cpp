@@ -58,7 +58,7 @@ sJitOptFlags;
 std::array<Core *, 3>
 gCore;
 
-static thread_local cpu::Core *
+thread_local cpu::Core *
 tCurrentCore = nullptr;
 
 static thread_local uint32_t
@@ -317,12 +317,6 @@ Core::tb()
 
 namespace this_core
 {
-
-cpu::Core *
-state()
-{
-   return tCurrentCore;
-}
 
 void
 resume()

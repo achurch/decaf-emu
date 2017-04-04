@@ -41,6 +41,9 @@ using IllInstHandler = void(*)(Core *core, platform::StackTrace *hostStackTrace)
 using BranchTraceHandler = void(*)(Core *core, uint32_t target);
 using KernelCallHandler = void(*)(Core *core, uint32_t id);
 
+extern thread_local Core *
+tCurrentCore;
+
 void
 initialise();
 
@@ -130,8 +133,11 @@ clearInterrupt(uint32_t flags);
 void
 setNextAlarm(std::chrono::steady_clock::time_point alarm_time);
 
-cpu::Core *
-state();
+inline cpu::Core *
+state()
+{
+   return cpu::tCurrentCore;
+}
 
 static uint32_t id()
 {
